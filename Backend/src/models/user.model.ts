@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema<IUser>(
       },
     },
     password: { type: String, required: true, select: false, minLength: 8 },
+    passwordChangedAt: Date,
   },
   {
     timestamps: true,
@@ -33,12 +34,28 @@ userSchema.pre("save", async function (next) {
 
 //Instance method to compare passwords
 userSchema.methods.correctPassword = async function (
-  this:IUser,
+  this: IUser,
   userPassword: string
 ): Promise<boolean> {
-  return await bcrypt.compare(userPassword,this.password);
+  return await bcrypt.compare(userPassword, this.password);
+};
+
+userSchema.methods.changedPasswordAfter = function (
+  this: IUser,
+  JWTTimestamp: number
+) {
+  //if this property doesnt exist on the document means the user hasnt changed the password
+  if (this.passwordChangedAt) {
+    const changedTimestamp = Math.floor(
+      this.passwordChangedAt.getTime() / 1000
+    );
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  //false means password not changed
+  return false;
 };
 
 const User = mongoose.model<IUser>("User", userSchema);
 
-export default User;  
+export default User;

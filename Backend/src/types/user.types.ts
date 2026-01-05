@@ -5,6 +5,9 @@ export interface IUser extends Document {
   email: string;
   password: string;
   correctPassword(enteredPassword: string): Promise<boolean>;
+  passwordChangedAt: Date;
+
+  changedPasswordAfter(JWTTimestamp: number): Promise<boolean>;
 }
 
 export interface RegisterInput {
