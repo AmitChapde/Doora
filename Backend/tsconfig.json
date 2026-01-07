@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ES2020",                  
-    "module": "CommonJS",                
-    "rootDir": "src",                    
-    "outDir": "dist",                    
-    "strict": true,                      
-    "esModuleInterop": true,             
-    "forceConsistentCasingInFileNames": true
+    "target": "ES2020",
+    "module": "CommonJS",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["./src/@types", "./src/types", "./node_modules/@types"]
   },
   "include": ["src"]
 }

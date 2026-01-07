@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import validator from "validator";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import { IUser } from "../types/user.types";
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -17,6 +18,8 @@ const userSchema = new mongoose.Schema<IUser>(
     },
     password: { type: String, required: true, select: false, minLength: 8 },
     passwordChangedAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
   },
   {
     timestamps: true,
@@ -56,6 +59,20 @@ userSchema.methods.changedPasswordAfter = function (
   return false;
 };
 
+userSchema.methods.createPasswordResetToken = function (): string {
+  //raw token sent to email
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  //hashed version stored in DB
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  //expiry 10 mins
+  this.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+  return resetToken;
+};
 const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;

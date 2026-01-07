@@ -4,10 +4,12 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  passwordChangedAt?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
   correctPassword(enteredPassword: string): Promise<boolean>;
-  passwordChangedAt: Date;
-
-  changedPasswordAfter(JWTTimestamp: number): Promise<boolean>;
+  changedPasswordAfter(JWTTimestamp: number): boolean;
+  createPasswordResetToken(): string;
 }
 
 export interface RegisterInput {

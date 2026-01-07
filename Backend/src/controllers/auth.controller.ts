@@ -4,7 +4,10 @@ import { LoginInput, RegisterInput } from "../types/user.types";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "../config/env";
 import { promisify } from "util";
+import crypto from "crypto";
 import User from "../models/user.model";
+import passwordResetTemplate from "../utils/emailTemplates";
+import sendEmail from "../utils/email";
 
 const registerController = async (
   req: Request<{}, {}, RegisterInput>,
@@ -92,8 +95,8 @@ const protectController = async (
     }
 
     //grant access to the protected Route
-    //need to check and add global type on runtime for this   
-    // req.user=freshUser
+    //need to check and add global type on runtime for this
+    req.user = freshUser;
     next();
   } catch (error) {
     res.status(500).json({ message: "Invalid or Expired Token" });
@@ -101,4 +104,76 @@ const protectController = async (
   }
 };
 
-export { registerController, loginController, protectController };
+const forgotPasswordController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { email } = req.body as { email: string };
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404).json({ message: "user not found with this email" });
+      return;
+    }
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    const resetURL = `${req.protocol}://${req.get(
+      "host"
+    )}/reset-password/${resetToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Reset your password",
+      html: passwordResetTemplate(user.name, resetURL),
+    });
+
+    res.status(200).json({ message: "Password reset link sent to email" });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+const resetPasswordController = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    }).select("+password");
+
+    if (!user) {
+      res.status(400).json({ message: "Token is invalid or expired" });
+      return;
+    }
+
+    const { password } = req.body as { password: string };
+    user.password = password;
+    user.passwordChangedAt = new Date();
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: "Password Reset Successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export {
+  registerController,
+  loginController,
+  protectController,
+  forgotPasswordController,
+  resetPasswordController,
+};
