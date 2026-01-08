@@ -26,6 +26,8 @@ const userSchema = new mongoose.Schema<IUser>(
   }
 );
 
+//Instance Methods
+
 //This hook works between when we ge the data and when its persisted to db
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
