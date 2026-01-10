@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/user.route";
 import workspaceRoutes from './routes/workspace.route';
+import workspaceMemberRoutes from './routes/workspacemember.route';
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ connectDB();
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use('/api/v1/workspaces',workspaceRoutes)
+app.use("/api/v1/workspaces", workspaceMemberRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 

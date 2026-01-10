@@ -1,3 +1,4 @@
+import User from "../models/user.model";
 import WorkspaceMember from "../models/workspacemember.model";
 import {
   createWorkspaceMemberInput,
@@ -27,16 +28,36 @@ const createWorkspaceMember = async ({
 };
 
 const getWorkspaceMembersByWorkspaceId = async (workspaceId: string) => {
-  const workspaceMembers = await WorkspaceMember.findById(workspaceId).populate(
+  const workspaceMembers = await WorkspaceMember.find({ workspaceId }).populate(
     "userId",
     "name email"
   );
+
   return workspaceMembers;
 };
+
 const inviteWorkspaceMember = async ({
   workspaceId,
   invitedUserId,
   role,
-}: InviteWorkspaceMemberInput) => {};
+}: InviteWorkspaceMemberInput) => {
+  if (!["EDITOR", "VIEWER"].includes(role)) {
+    throw new Error("Invalid Role");
+  }
+  const userExists = await User.findById(invitedUserId);
+  if (!userExists) {
+    throw new Error("User not found");
+  }
 
-export { createWorkspaceMember ,getWorkspaceMembersByWorkspaceId};
+  return createWorkspaceMember({
+    workspaceId,
+    userId: invitedUserId,
+    role,
+  });
+};
+
+export {
+  createWorkspaceMember,
+  getWorkspaceMembersByWorkspaceId,
+  inviteWorkspaceMember,
+};

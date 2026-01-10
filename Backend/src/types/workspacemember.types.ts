@@ -6,6 +6,7 @@ export interface IWorkspacemember extends Document {
   role: "ADMIN" | "EDITOR" | "VIEWER";
 }
 
+
 export interface createWorkspaceMemberInput {
   workspaceId: string;
   userId: string;

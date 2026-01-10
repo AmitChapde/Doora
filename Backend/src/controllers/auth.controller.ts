@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { register, login } from "../services/auth.service";
 import { LoginInput, RegisterInput } from "../types/user.types";
+import { WorkspaceRole } from "../types/role.types";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "../config/env";
 import { promisify } from "util";
@@ -8,6 +9,7 @@ import crypto from "crypto";
 import User from "../models/user.model";
 import passwordResetTemplate from "../utils/emailTemplates";
 import sendEmail from "../utils/email";
+import WorkspaceMember from "../models/workspacemember.model";
 
 const registerController = async (
   req: Request<{}, {}, RegisterInput>,
@@ -170,10 +172,39 @@ const resetPasswordController = async (
   }
 };
 
+const restrictToController = (...allowedRoles:WorkspaceRole[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        res.status(401).json({ message: "Unauthorized" });
+        return
+      }
+      const userId = req.user.id;
+      const workspaceId = req.params.workspaceId;
+
+      //fetching document based on the criteria that it should match the workspaceId and userId
+      const membership = await WorkspaceMember.findOne({ workspaceId, userId });
+
+      if (!membership) {
+        res.status(403).json({ message: "Not a member" });
+        return;
+      }
+      if (!allowedRoles.includes(membership.role)) {
+        res.status(403).json({ message: "Access Denied" });
+        return;
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Something went wrong" });
+    }
+
+    next();
+  };
+};
 export {
   registerController,
   loginController,
   protectController,
   forgotPasswordController,
   resetPasswordController,
+  restrictToController
 };
