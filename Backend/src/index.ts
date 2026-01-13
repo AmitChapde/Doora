@@ -4,8 +4,9 @@ import connectDB from "./config/db";
 import cors from "cors";
 import authRoutes from "./routes/auth.route";
 import userRoutes from "./routes/user.route";
-import workspaceRoutes from './routes/workspace.route';
-import workspaceMemberRoutes from './routes/workspacemember.route';
+import workspaceRoutes from "./routes/workspace.route";
+import workspaceMemberRoutes from "./routes/workspacemember.route";
+import boardRoutes from "./routes/boards.route";
 
 dotenv.config();
 
@@ -23,9 +24,9 @@ connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
-app.use('/api/v1/workspaces',workspaceRoutes)
+app.use("/api/v1/workspaces", workspaceRoutes);
 app.use("/api/v1/workspaces", workspaceMemberRoutes);
-
+app.use("/api/v1", boardRoutes);
 
 const PORT = process.env.PORT || 5000;
 
