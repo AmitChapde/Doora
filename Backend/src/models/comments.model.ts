@@ -22,7 +22,6 @@ const commentSchema = new mongoose.Schema<IComment>(
       required: true,
     },
 
-  
     isDeleted: {
       type: Boolean,
       default: false,

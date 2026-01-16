@@ -5,6 +5,8 @@ import {
   deleteTask,
   getTasksByBoard,
   updateTask,
+  reorderTasksInStatus,
+  moveTaskAcrossStatus,
 } from "../services/task.service";
 
 const createTaskController = async (req: Request, res: Response) => {
@@ -39,7 +41,6 @@ const createTaskController = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-   
     res.status(500).json({ message: "Error creating task" });
   }
 };
@@ -89,9 +90,54 @@ const deleteTaskController = async (req: Request, res: Response) => {
   }
 };
 
+const reorderTasksInStatusController = async (req: Request, res: Response) => {
+  try {
+    const { boardId } = req.params;
+    const { status, orderedTaskIds } = req.body;
+
+    if (!status || !orderedTaskIds?.length) {
+      return res.status(400).json({ message: "Invalid payload" });
+    }
+
+    await reorderTasksInStatus({
+      boardId: new mongoose.Types.ObjectId(boardId),
+      status,
+      orderedTaskIds,
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Tasks reordered successfully",
+    });
+  } catch (error: any) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const moveTaskAcrossStatusController = async (req: Request, res: Response) => {
+  try {
+    const { boardId } = req.params;
+    const { taskId, fromStatus, toStatus, toIndex } = req.body;
+
+    await moveTaskAcrossStatus({
+      boardId: new mongoose.Types.ObjectId(boardId),
+      taskId,
+      fromStatus,
+      toStatus,
+      toIndex,
+    });
+    return res.status(200).json({
+      message: "Task moved successfully",
+    });
+  } catch (error:any) {
+    return res.status(400).json({ message: error.message });
+  }
+};
 export {
   createTaskController,
   getTasksByBoardController,
   updateTaskController,
   deleteTaskController,
+  reorderTasksInStatusController,
+  moveTaskAcrossStatusController
 };

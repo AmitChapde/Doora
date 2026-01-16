@@ -42,6 +42,7 @@ const taskSchema = new mongoose.Schema<ITask>(
     timestamps: true,
   }
 );
+taskSchema.index({ boardId: 1, status: 1, order: 1 });
 
 const Task = mongoose.model("Task", taskSchema);
 

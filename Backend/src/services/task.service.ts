@@ -1,5 +1,11 @@
 import Task from "../models/task.model";
-import { createTaskInput, UpdateTaskInput } from "../types/task.types";
+import mongoose, { Types } from "mongoose";
+import {
+  createTaskInput,
+  UpdateTaskInput,
+  ReorderTaskInput,
+  MoveTaskInput,
+} from "../types/task.types";
 
 const createTask = async ({
   title,
@@ -43,4 +49,130 @@ const deleteTask = async (taskId: string) => {
   const task = await Task.findByIdAndDelete(taskId);
   return task;
 };
-export { createTask, getTasksByBoard, deleteTask, updateTask };
+
+const reorderTasksInStatus = async ({
+  boardId,
+  status,
+  orderedTaskIds,
+}: ReorderTaskInput) => {
+  //fetch tasks in the board and status
+  const tasks = await Task.find({
+    boardId,
+    status,
+  }).select("_id");
+
+  //validate count
+  if (tasks.length !== orderedTaskIds.length) {
+    throw new Error("Invalid reorder payload");
+  }
+
+  //validate same set
+  const dbTaskIds = new Set(tasks.map((t) => t._id.toString()));
+
+  for (const taskId of orderedTaskIds) {
+    if (!dbTaskIds.has(taskId)) {
+      throw new Error("Task doesnot belong to this board/status");
+    }
+  }
+
+  //Build bulk update
+  const bulkOps = orderedTaskIds.map((taskId, index) => ({
+    updateOne: {
+      filter: {
+        _id: new Types.ObjectId(taskId),
+        boardId,
+        status,
+      },
+      update: {
+        $set: { order: index },
+      },
+    },
+  }));
+
+  await Task.bulkWrite(bulkOps);
+};
+
+const   moveTaskAcrossStatus = async ({
+  boardId,
+  taskId,
+  fromStatus,
+  toStatus,
+  toIndex,
+}: MoveTaskInput) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    //fetch the task
+    const task = await Task.findOne({
+      _id: new Types.ObjectId(taskId),
+      boardId,
+      status: fromStatus,
+    }).session(session);
+    if (!task) {
+      throw new Error("Task not found in source status");
+    }
+
+    //source column:remove task and reorder
+    const sourceTasks = await Task.find({
+      boardId,
+      status: fromStatus,
+      _id: { $ne: task._id },
+    })
+      .sort({ order: 1 })
+      .session(session);
+
+    const sourceBulkOps = sourceTasks.map((t, index) => ({
+      updateOne: {
+        filter: { _id: t._id },
+        update: { $set: { order: index } },
+      },
+    }));
+
+    if (sourceBulkOps.length) {
+      await Task.bulkWrite(sourceBulkOps, { session });
+    }
+
+    const destTasks = await Task.find({
+      boardId,
+      status: toStatus,
+    })
+      .sort({ order: 1 })
+      .session(session);
+
+    if (toIndex < 0 || toIndex > destTasks.length) {
+      throw new Error("Invalid destination Index");
+    }
+
+    destTasks.splice(toIndex, 0, task);
+
+    const destBulkOps = destTasks.map((t, index) => ({
+      updateOne: {
+        filter: { _id: t._id },
+        update: {
+          $set: {
+            order: index,
+            status: toStatus,
+          },
+        },
+      },
+    }));
+
+    await Task.bulkWrite(destBulkOps, { session });
+    await session.commitTransaction();
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    session.endSession();
+  }
+};
+
+export {
+  createTask,
+  getTasksByBoard,
+  deleteTask,
+  updateTask,
+  reorderTasksInStatus,
+  moveTaskAcrossStatus,
+};
