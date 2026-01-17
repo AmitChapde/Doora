@@ -10,6 +10,8 @@ import {
   reorderTasksInStatusController,
   moveTaskAcrossStatusController,
 } from "../controllers/task.controller";
+import loadWorkspaceMember from "../middlewares/loadWorkspaceMember";
+import restrictWorkspaceRoles from "../middlewares/restrictWorkspaceRoles";
 
 const router = express.Router();
 
@@ -17,39 +19,41 @@ router.post(
   "/boards/:boardId/tasks",
   protectController,
   restrictBoardRole("ADMIN", "EDITOR"),
-  createTaskController
+  createTaskController,
 );
 
 router.get(
   "/boards/:boardId/tasks",
   protectController,
   restrictBoardRole("ADMIN", "EDITOR", "VIEWER"),
-  getTasksByBoardController
+  getTasksByBoardController,
 );
 
 router.patch(
   "/tasks/:taskId",
   protectController,
   restrictTaskRole("ADMIN", "EDITOR"),
-  updateTaskController
+  updateTaskController,
 );
 
 router.delete(
   "/tasks/:taskId",
   protectController,
   restrictTaskRole("ADMIN"),
-  deleteTaskController
+  deleteTaskController,
 );
 
 router.patch(
   "/boards/:boardId/tasks/reorder",
   protectController,
-  reorderTasksInStatusController
+  restrictBoardRole("ADMIN", "EDITOR"),
+  reorderTasksInStatusController,
 );
 
 router.patch(
   "/boards/:boardId/tasks/move",
   protectController,
-  moveTaskAcrossStatusController
+  restrictBoardRole("ADMIN", "EDITOR"),
+  moveTaskAcrossStatusController,
 );
 export default router;
