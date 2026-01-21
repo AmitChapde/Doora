@@ -1,4 +1,5 @@
 import Task from "../models/task.model";
+import { getIO } from "../socket";
 import mongoose, { Types } from "mongoose";
 import {
   createTaskInput,
@@ -108,6 +109,13 @@ const reorderTasksInStatus = async ({
   }));
 
   await Task.bulkWrite(bulkOps);
+
+  getIO()
+    .to(`board:${boardId.toString()}`)
+    .emit("task:reordered", {
+      boardId: boardId.toString(),
+      status,
+    });
 };
 
 const moveTaskAcrossStatus = async ({
@@ -209,6 +217,14 @@ const moveTaskAcrossStatus = async ({
 
     await Task.bulkWrite(destBulkOps, { session });
     await session.commitTransaction();
+
+    getIO()
+      .to(`board:${boardId.toString()}`)
+      .emit("task:moved", {
+        taskId,
+        fromStatus,
+        toStatus,
+      });
   } catch (error) {
     await session.abortTransaction();
     throw error;
