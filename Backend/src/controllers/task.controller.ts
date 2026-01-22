@@ -34,6 +34,7 @@ const createTaskController = async (req: Request, res: Response) => {
       boardId: new mongoose.Types.ObjectId(boardId),
       workspaceId: req.workspaceId,
       createdBy: req.user.id,
+      userId: req.user.id,
     });
     res.status(201).json({
       status: "success",
@@ -66,7 +67,11 @@ const updateTaskController = async (req: Request, res: Response) => {
     const { taskId } = req.params;
     const updates = req.body;
 
-    const updatedTask = await updateTask(taskId, updates);
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    const updatedTask = await updateTask(taskId, updates, req.user!.id);
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -100,12 +105,16 @@ const reorderTasksInStatusController = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Invalid payload" });
     }
 
-
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
     await reorderTasksInStatus({
       boardId: new mongoose.Types.ObjectId(boardId),
       status,
       orderedTaskIds,
-      lastKnownUpdatedAt
+      lastKnownUpdatedAt,
+      userId: req.user!.id,
     });
 
     return res.status(200).json({
@@ -131,6 +140,10 @@ const moveTaskAcrossStatusController = async (req: Request, res: Response) => {
 
     }
 
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
 
     await moveTaskAcrossStatus({
       boardId: new mongoose.Types.ObjectId(boardId),
@@ -139,7 +152,8 @@ const moveTaskAcrossStatusController = async (req: Request, res: Response) => {
       toStatus,
       toIndex,
       fromUpdatedAt,
-      toUpdatedAt
+      toUpdatedAt,
+      userId: req.user!.id,
     });
 
 

@@ -20,6 +20,7 @@ export interface createTaskInput {
   createdBy: Types.ObjectId;
   status: "TODO" | "IN_PROGRESS" | "DONE";
   order: number;
+  userId:string;
 }
 
 export interface UpdateTaskInput {
@@ -27,6 +28,7 @@ export interface UpdateTaskInput {
   description: string;
   status: "TODO" | "IN_PROGRESS" | "DONE";
   order: number;
+  userId: string;
 }
 
 export interface ReorderTaskInput {
@@ -34,6 +36,7 @@ export interface ReorderTaskInput {
   status: "TODO" | "IN_PROGRESS" | "DONE";
   orderedTaskIds: string[];
   lastKnownUpdatedAt: string;
+  userId:string;
 }
 
 export interface MoveTaskInput {
@@ -44,4 +47,5 @@ export interface MoveTaskInput {
   toIndex: number;
   fromUpdatedAt: string;
   toUpdatedAt: string;
+  userId:string;
 }

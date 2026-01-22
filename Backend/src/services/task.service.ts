@@ -7,6 +7,7 @@ import {
   ReorderTaskInput,
   MoveTaskInput,
 } from "../types/task.types";
+import { createActivity } from "./activity.services";
 
 const createTask = async ({
   title,
@@ -16,6 +17,7 @@ const createTask = async ({
   createdBy,
   status,
   order,
+  userId
 }: createTaskInput) => {
   const newTask = await Task.create({
     title,
@@ -26,6 +28,17 @@ const createTask = async ({
     status,
     order,
   });
+
+  await createActivity({
+    boardId,
+    workspaceId,
+    actorId: new Types.ObjectId(userId),
+    type: "TASK_CREATED",
+    entityId: newTask._id,
+    metadata: {
+      status,
+    },
+  });
   return newTask;
 };
 
@@ -34,7 +47,7 @@ const getTasksByBoard = async (boardId: string) => {
   return tasks;
 };
 
-const updateTask = async (taskId: string, updates: UpdateTaskInput) => {
+const updateTask = async (taskId: string, updates: UpdateTaskInput, userId: string) => {
   const updatedTask = await Task.findByIdAndUpdate(
     taskId,
     { $set: updates },
@@ -43,6 +56,18 @@ const updateTask = async (taskId: string, updates: UpdateTaskInput) => {
       runValidators: true, //enforce schema rules
     }
   );
+
+  if (!updatedTask) return null;
+
+  await createActivity({
+    boardId: updatedTask.boardId,
+    workspaceId: updatedTask.workspaceId,
+    actorId: new Types.ObjectId(userId),
+    type: "TASK_UPDATED",
+    entityId: updatedTask._id,
+    metadata: Object.keys(updates),
+  });
+
   return updatedTask;
 };
 
@@ -55,7 +80,8 @@ const reorderTasksInStatus = async ({
   boardId,
   status,
   orderedTaskIds,
-  lastKnownUpdatedAt
+  lastKnownUpdatedAt,
+  userId
 }: ReorderTaskInput) => {
 
   //OPTIMISTIC LOCKING  
@@ -110,6 +136,18 @@ const reorderTasksInStatus = async ({
 
   await Task.bulkWrite(bulkOps);
 
+  await createActivity({
+    boardId,
+    workspaceId: tasks[0].workspaceId,
+    actorId: new Types.ObjectId(userId),
+    type: "TASK_REORDERED",
+    entityId: boardId,
+    metadata: {
+      status,
+    },
+  });
+
+
   getIO()
     .to(`board:${boardId.toString()}`)
     .emit("task:reordered", {
@@ -125,7 +163,8 @@ const moveTaskAcrossStatus = async ({
   toStatus,
   toIndex,
   fromUpdatedAt,
-  toUpdatedAt
+  toUpdatedAt,
+  userId
 }: MoveTaskInput) => {
 
   const latestFrom = await Task.findOne({
@@ -216,6 +255,19 @@ const moveTaskAcrossStatus = async ({
     }));
 
     await Task.bulkWrite(destBulkOps, { session });
+    await createActivity({
+      boardId,
+      workspaceId: task.workspaceId,
+      actorId: new Types.ObjectId(userId),
+      type: "TASK_MOVED",
+      entityId: task._id,
+      metadata: {
+        fromStatus,
+        toStatus,
+      },
+      session,
+    });
+
     await session.commitTransaction();
 
     getIO()
