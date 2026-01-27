@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../features/auth/context/AuthContext";
+import { useEffect, useState } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,8 +8,21 @@ interface ProtectedRouteProps {
 
 function ProtectedRoute ({ children }: ProtectedRouteProps){
   const { user, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    // Give auth context time to initialize from localStorage
+    const timer = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // If user exists, show content immediately (don't wait for initial loading)
+  if (user) {
+    return <>{children}</>;
+  }
+
+
+  if (isLoading || !mounted) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -19,11 +33,8 @@ function ProtectedRoute ({ children }: ProtectedRouteProps){
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth/login" replace />;
-  }
-
-  return <>{children}</>;
+  // No user and loading complete, redirect to login
+  return <Navigate to="/auth/login" replace />;
 };
 
 export default ProtectedRoute;

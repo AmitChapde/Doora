@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (loginData: LoginPayload) => {
     try {
       const res = await authService.login(loginData);
+      // loginData response: { token, user: { id, name, email } }
       if (res && res.user) {
         setUser(res.user);
         localStorage.setItem("user", JSON.stringify(res.user));
@@ -60,11 +61,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const register = async (signupData: SignupPayload) => {
-    const res = await authService.register(signupData);
-   
-    if (res.user) {
-      setUser(res.user);
-      localStorage.setItem("user", JSON.stringify(res.user));
+    try {
+      const res = await authService.register(signupData);
+      // registerData response: { user: { id, token, name, email } }
+      if (res && res.user) {
+        setUser(res.user);
+        localStorage.setItem("user", JSON.stringify(res.user));
+      } else {
+        throw new Error("Invalid register response");
+      }
+    } catch (error) {
+      console.error("Register error:", error);
+      throw error;
     }
   };
 
