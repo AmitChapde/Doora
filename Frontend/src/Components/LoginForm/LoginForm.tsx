@@ -14,41 +14,45 @@ import {
 } from "../ui/input-group";
 import { Link, useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { toast } from "sonner";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import type { LoginPayload } from "../../api/auth/auth.types";
+import  { Spinner } from "../ui/spinner";
+
 
 function LoginForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
       if (!email || !password) {
-        setError("Please fill in all fields");
+        toast.error("Please fill in all fields");
         setLoading(false);
         return;
       }
 
       const formData: LoginPayload = { email, password };
       await login(formData);
+        toast.success("Welcome back");
       navigate("/dashboard");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Login failed. Please try again."
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.",
       );
       setLoading(false);
     }
   };
-  return (
+  return (  
     <form className="w-full max-w-md flex flex-col" onSubmit={handleSubmit}>
       <div className="flex flex-col justify-center items-center mb-6">
         <img src={logo} alt="logo" className="w-20 h-20" />
@@ -56,12 +60,6 @@ function LoginForm() {
       </div>
 
       <div className="flex flex-col gap-4 grow">
-        {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
         <div className="flex flex-col gap-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -70,7 +68,6 @@ function LoginForm() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
         </div>
 
@@ -83,7 +80,6 @@ function LoginForm() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
             <InputGroupAddon align="inline-end">
               <Tooltip>
@@ -113,13 +109,14 @@ function LoginForm() {
 
         <div className="flex justify-end">
           <p className="text-sm text-blue-500 cursor-pointer">
-            Forgot Password?
+            <Link to="/auth/forget-password">Forgot Password?</Link>
+            
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
           <Button type="submit" disabled={loading}>
-            {loading ? "Logging in..." : "Submit"}
+            {loading ? <Spinner/> : "Submit"}
           </Button>
           <Button
             variant="outline"

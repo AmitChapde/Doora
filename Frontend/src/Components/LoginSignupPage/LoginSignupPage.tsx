@@ -2,10 +2,11 @@ import Spline from "@splinetool/react-spline";
 import SignUpForm from "../SignUpForm/SignUpForm";
 import LoginForm from "../LoginForm/LoginForm";
 import { useLocation } from "react-router-dom";
+import ForgetPassword from "../ForgetPassword/FrogetPassword";
 
 function LoginSignupPage() {
   const location = useLocation();
-  const showLogin = location.pathname !== "/auth/signup";
+  const pathname = location.pathname;
 
   return (
     <div className="flex flex-col md:flex-row h-full md:h-screen w-full">
@@ -20,7 +21,13 @@ function LoginSignupPage() {
       </div>
 
       <div className="flex-1 flex flex-col justify-center items-center bg-white p-6 md:p-10">
-        {showLogin ? <LoginForm /> : <SignUpForm />}
+        {pathname === "/auth/forget-password" ? (
+          <ForgetPassword />
+        ) : pathname === "/auth/signup" ? (
+          <SignUpForm />
+        ) : (
+          <LoginForm />
+        )}
       </div>
     </div>
   );

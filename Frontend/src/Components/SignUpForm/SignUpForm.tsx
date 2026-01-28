@@ -16,31 +16,31 @@ import { Link, useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import type { SignupPayload } from "../../api/auth/auth.types";
+import { toast } from "sonner";
+import { Spinner } from "../ui/spinner";
 
 function SignUpForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
       if (!name || !email || !password) {
-        setError("Please fill in all fields");
+        toast.error("Please fill in all fields");
         setLoading(false);
         return;
       }
 
       if (password.length < 6) {
-        setError("Password must be at least 6 characters long");
+        toast.error("Password must be at least 6 characters long");
         setLoading(false);
         return;
       }
@@ -49,8 +49,10 @@ function SignUpForm() {
       await register(formData);
       navigate("/dashboard");
     } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Registration failed. Please try again."
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.",
       );
       setLoading(false);
     }
@@ -65,12 +67,6 @@ function SignUpForm() {
       </div>
 
       <div className="flex flex-col gap-4 grow">
-        {error && (
-          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-
         <div className="flex flex-col gap-2">
           <Label htmlFor="fullName">Full Name</Label>
           <Input
@@ -79,7 +75,6 @@ function SignUpForm() {
             placeholder="Full Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            required
           />
         </div>
 
@@ -91,7 +86,6 @@ function SignUpForm() {
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
         </div>
 
@@ -104,7 +98,7 @@ function SignUpForm() {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+            
             />
             <InputGroupAddon align="inline-end">
               <Tooltip>
@@ -134,11 +128,12 @@ function SignUpForm() {
 
         <div className="flex flex-col gap-2 mt-2">
           <Button type="submit" disabled={loading}>
-            {loading ? "Creating Account..." : "Submit"}
+            {loading ? <Spinner  data-icon="inline-start" /> : "Submit"}
+            
           </Button>
           <Button
             variant="outline"
-            className="flex items-center justify-center gap-2"
+            className="flex items-center justify-center gap-2 hidden"
           >
             <FontAwesomeIcon icon={faGoogle} style={{ color: "#DB4437" }} />
             Continue with Google

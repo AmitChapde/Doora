@@ -32,3 +32,20 @@ export type LoginResponse = {
     };
   };
 };
+
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export type ResetPasswordPayload = {
+  token: string;
+  password: string;
+};
+
+export type ForgotPasswordResponse = {
+  message: string;
+};
+
+export type ResetPasswordResponse = {
+  message: string;
+};

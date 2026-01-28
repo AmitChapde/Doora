@@ -16,7 +16,7 @@ function ProtectedRoute ({ children }: ProtectedRouteProps){
     return () => clearTimeout(timer);
   }, []);
 
-  // If user exists, show content immediately (don't wait for initial loading)
+ 
   if (user) {
     return <>{children}</>;
   }
