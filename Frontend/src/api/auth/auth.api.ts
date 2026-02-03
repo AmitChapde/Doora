@@ -21,7 +21,9 @@ export const authApi = {
   forgotPassword: (data: ForgotPasswordPayload) =>
     apiClient.post<ForgotPasswordResponse>("/auth/forgot-password", data),
 
-  resetPassword:(data:ResetPasswordPayload)=>
-    apiClient.patch<ResetPasswordResponse>
+  resetPassword: (data: ResetPasswordPayload) =>
+    apiClient.patch<ResetPasswordResponse>(
+      `/auth/reset-password/${data.token}`,
+      { password: data.password },
+    ),
 };
-    

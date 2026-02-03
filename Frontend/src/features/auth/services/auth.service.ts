@@ -1,7 +1,8 @@
 import { authApi } from "../../../api/auth/auth.api";
 import type {
-  ForgetPassPayload,
+  ForgotPasswordPayload,
   LoginPayload,
+  ResetPasswordPayload,
   SignupPayload,
 } from "../../../api/auth/auth.types";
 
@@ -24,9 +25,13 @@ export const authService = {
     return registerData;
   },
 
-  async reset(payload: ForgetPassPayload) {
-    const res = await authApi.reset(payload);
+  async forgotPassword(payload: ForgotPasswordPayload) {
+    const res = await authApi.forgotPassword(payload);
+    return res;
+  },
 
+  async reset(payload: ResetPasswordPayload) {
+    const res = await authApi.resetPassword(payload);
     return res;
   },
 };

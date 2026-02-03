@@ -12,12 +12,18 @@ import {
 } from "../ui/card";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "../ui/input";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@radix-ui/react-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@radix-ui/react-tooltip";
 import { faEyeSlash, faEye } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { authService } from "../../features/auth/services/auth.service";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -26,9 +32,15 @@ function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] =
     useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isSent, setIsSent] = useState(false);
 
-  const handleReset = () => {
+  const { token } = useParams<{ token: string }>();
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) {
+      toast.error("Invalid or expired reset link");
+      return;
+    }
     if (!password || !confirm) {
       toast.error("Please fill in the details");
       return;
@@ -37,9 +49,18 @@ function ResetPassword() {
       toast.error("Passwords do not match");
       return;
     }
-    setLoading(true);
-    setIsSent(false);
-    // Add API call here to reset password
+
+    try {
+      setLoading(true);
+
+      await authService.reset({ password, token });
+      toast.success("Password reset successful. You can now log in.");
+      window.location.href = "/auth/login";
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <TooltipProvider>
@@ -122,8 +143,13 @@ function ResetPassword() {
             </form>
           </CardContent>
           <CardFooter className="flex-col gap-2">
-            <Button type="submit" className="w-full" onClick={handleReset}>
-              Reset Password
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+              onClick={handleReset}
+            >
+              {loading ? <Spinner /> : "Reset Password"}
             </Button>
           </CardFooter>
         </Card>

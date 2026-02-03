@@ -17,8 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { toast } from "sonner";
 import { useAuth } from "../../features/auth/context/AuthContext";
 import type { LoginPayload } from "../../api/auth/auth.types";
-import  { Spinner } from "../ui/spinner";
-
+import { Spinner } from "../ui/spinner";
 
 function LoginForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -41,18 +40,14 @@ function LoginForm() {
 
       const formData: LoginPayload = { email, password };
       await login(formData);
-        toast.success("Welcome back");
+      toast.success("Welcome back");
       navigate("/dashboard");
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Login failed. Please try again.",
-      );
+      toast.error(error instanceof Error && `Invalid Email or Password`);
       setLoading(false);
     }
   };
-  return (  
+  return (
     <form className="w-full max-w-md flex flex-col" onSubmit={handleSubmit}>
       <div className="flex flex-col justify-center items-center mb-6">
         <img src={logo} alt="logo" className="w-20 h-20" />
@@ -110,13 +105,12 @@ function LoginForm() {
         <div className="flex justify-end">
           <p className="text-sm text-blue-500 cursor-pointer">
             <Link to="/auth/forget-password">Forgot Password?</Link>
-            
           </p>
         </div>
 
         <div className="flex flex-col gap-2">
           <Button type="submit" disabled={loading}>
-            {loading ? <Spinner/> : "Submit"}
+            {loading ? <Spinner /> : "Submit"}
           </Button>
           <Button
             variant="outline"

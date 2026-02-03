@@ -5,17 +5,27 @@ import { Input } from "../ui/input";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
+import { authService } from "../../features/auth/services/auth.service";
 
 function ForgetPassword() {
   const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [isSent, setIsSent] = useState(false);
 
-  const handleSubmit = () => {
-    setLoading(true);
-    setIsSent(false);
-    if (!email) {
-      toast.error("Please fill in the details");
+  const handleSubmit = async () => {
+    try {
+      setLoading(true);
+      setIsSent(false);
+      if (!email) {
+        toast.error("Please fill in the details");
+      }
+      await authService.forgotPassword({ email });
+      toast.success("Reset link has been sent to your email");
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+      setIsSent(true);
     }
   };
   return (

@@ -13,7 +13,7 @@ import WorkspaceMember from "../models/workspacemember.model";
 
 const registerController = async (
   req: Request<{}, {}, RegisterInput>,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const newUser = await register(req.body);
@@ -34,7 +34,7 @@ const registerController = async (
 
 const loginController = async (
   req: Request<{}, {}, LoginInput>,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const user = await login(req.body);
@@ -57,7 +57,7 @@ const loginController = async (
 const protectController = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   let token;
   try {
@@ -108,7 +108,7 @@ const protectController = async (
 
 const forgotPasswordController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     const { email } = req.body as { email: string };
@@ -122,9 +122,7 @@ const forgotPasswordController = async (
     const resetToken = user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetURL = `${req.protocol}://${req.get(
-      "host"
-    )}/reset-password/${resetToken}`;
+    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
 
     await sendEmail({
       to: user.email,
@@ -140,13 +138,15 @@ const forgotPasswordController = async (
 
 const resetPasswordController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const { password } = req.body as {
+      password: string;
+    };
+    const { token } = req.params;
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const user = await User.findOne({
       passwordResetToken: hashedToken,
@@ -158,7 +158,6 @@ const resetPasswordController = async (
       return;
     }
 
-    const { password } = req.body as { password: string };
     user.password = password;
     user.passwordChangedAt = new Date();
     user.passwordResetToken = undefined;
@@ -172,12 +171,12 @@ const resetPasswordController = async (
   }
 };
 
-const restrictToController = (...allowedRoles:WorkspaceRole[]) => {
+const restrictToController = (...allowedRoles: WorkspaceRole[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         res.status(401).json({ message: "Unauthorized" });
-        return
+        return;
       }
       const userId = req.user.id;
       const workspaceId = req.params.workspaceId;
@@ -206,5 +205,5 @@ export {
   protectController,
   forgotPasswordController,
   resetPasswordController,
-  restrictToController
+  restrictToController,
 };
