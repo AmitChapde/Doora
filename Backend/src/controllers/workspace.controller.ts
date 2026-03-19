@@ -8,7 +8,7 @@ import { createWorkspaceInput } from "../types/workspace.types";
 
 const createWorkspaceController = async (
   req: Request<{}, {}, createWorkspaceInput>,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -24,9 +24,7 @@ const createWorkspaceController = async (
 
     res.status(201).json({
       status: "success",
-      data: {
-        workspace: newWorkspace,
-      },
+      data: newWorkspace,
     });
   } catch (error) {
     if (error instanceof Error) {
@@ -39,7 +37,7 @@ const createWorkspaceController = async (
 
 const getUserWorkspacesController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   try {
     if (!req.user) {
@@ -60,7 +58,7 @@ const getUserWorkspacesController = async (
 
 const getWorkspaceByIdController = async (
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> => {
   if (!req.user) {
     res.status(401).json({ messaeg: "Unauthorized" });

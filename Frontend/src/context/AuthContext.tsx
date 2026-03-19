@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { authService } from "../services/auth.service";
-import type { LoginPayload, SignupPayload } from "../../../api/auth/auth.types";
+import { authService } from "../api/auth/auth.service";
+import type { LoginPayload,SignupPayload } from "../api/auth/auth.types";
 
 type AuthProviderProps = {
   children: React.ReactNode;

@@ -1,10 +1,10 @@
-import { authApi } from "../../../api/auth/auth.api";
+import { authApi } from "./auth.api";
 import type {
   ForgotPasswordPayload,
   LoginPayload,
   ResetPasswordPayload,
   SignupPayload,
-} from "../../../api/auth/auth.types";
+} from "./auth.types";
 
 export const authService = {
   async login(payload: LoginPayload) {

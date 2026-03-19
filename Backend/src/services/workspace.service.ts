@@ -16,10 +16,15 @@ const createWorkspace = async ({
     userId,
     role: "ADMIN",
   });
+
+  await newWorkspace.populate({
+    path: "createdBy",
+    select: "name email _id",
+  });
+
   return {
-    id: newWorkspace._id,
-    name: newWorkspace.name,
-    createdBy: newWorkspace.createdBy,
+    role: "ADMIN",
+    workspace: newWorkspace,
   };
 };
 
@@ -38,8 +43,8 @@ const getUserWorkspaces = async (userId: string) => {
 const getWorkspaceById = async (workspaceId: string) => {
   const workspace = await Workspace.findById(workspaceId).populate(
     "createdBy",
-    "name email"
+    "name email",
   );
   return workspace;
 };
-export { createWorkspace,getUserWorkspaces,getWorkspaceById  };
+export { createWorkspace, getUserWorkspaces, getWorkspaceById };

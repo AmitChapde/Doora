@@ -15,7 +15,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { toast } from "sonner";
-import { useAuth } from "../../features/auth/context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import type { LoginPayload } from "../../api/auth/auth.types";
 import { Spinner } from "../ui/spinner";
 

@@ -5,7 +5,7 @@ import { Input } from "../ui/input";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
-import { authService } from "../../features/auth/services/auth.service";
+import { authService } from "../../api/auth/auth.service";
 
 function ForgetPassword() {
   const [email, setEmail] = useState<string>("");
